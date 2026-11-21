@@ -156,7 +156,58 @@ header.top { display: flex; align-items: flex-end; justify-content: space-betwee
 .review h3 { font-size: .85rem; letter-spacing: .1em; color: var(--red); margin: 0; }
 .rv { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-size: .88rem; display: flex; flex-direction: column; gap: 6px; }
 
-@media (prefers-reduced-motion: reduce) { .stamp.hit { animation: none; } .mode, .bar i, .timer i { transition: none; } }
+/* 用語 */
+.term { border-bottom: 1.5px dotted var(--blue); cursor: help; border-radius: 2px; }
+.term:hover { background: color-mix(in srgb, var(--blue) 12%, transparent); }
+.term-sample { text-decoration: none; border-bottom: 1.5px dotted var(--blue); }
+.tap-hint { margin: 0; text-align: center; }
+.sheet-bg { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 40%, transparent); z-index: 50; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; max-height: 72vh; overflow-y: auto; background: var(--sheet); border-top: 3px double var(--red); box-shadow: 0 -8px 30px color-mix(in srgb, var(--ink) 25%, transparent);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px calc(env(safe-area-inset-bottom, 0px) + 24px); animation: up .2s ease-out; }
+@keyframes up { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-in { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sheet-cat { font-size: .72rem; letter-spacing: .12em; color: var(--red); font-weight: 700; }
+.sheet h3 { font-family: var(--f-display); font-weight: 400; font-size: 1.6rem; margin: 0; line-height: 1.3; }
+.sheet p { margin: 0; font-size: 1rem; }
+.rel { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip, .fchip { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 5px 12px; font-size: .85rem; }
+.chip:hover, .fchip:hover { border-color: var(--blue); }
+.fchip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* 分からないボタン */
+.unknown { display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; background: none; border: 1.5px dashed var(--muted); border-radius: 6px; padding: 10px; font-weight: 700; color: var(--muted); }
+.unknown small { font-weight: 400; font-size: .72rem; }
+.unknown:hover { border-color: var(--blue); color: var(--blue); }
+.choice.done { cursor: default; }
+.choice.done:hover { border-color: var(--line); }
+.choice.done.correct:hover { border-color: var(--ok); } .choice.done.wrong:hover { border-color: var(--shu); }
+
+/* ホームの入門バナー */
+.starter { display: flex; flex-direction: column; gap: 2px; text-align: left; background: color-mix(in srgb, var(--blue) 9%, var(--sheet)); border: 1.5px solid var(--blue); border-radius: 6px; padding: 12px 16px; }
+.starter b { color: var(--blue); }
+.starter span { font-size: .85rem; line-height: 1.6; }
+
+/* じてん */
+.rules { display: flex; flex-direction: column; gap: 10px; }
+.rules p { margin: 0; }
+.tscroll { overflow-x: auto; }
+.rule-t { width: 100%; border-collapse: collapse; font-size: .85rem; min-width: 320px; }
+.rule-t th { font-size: .72rem; color: var(--blue); text-align: left; border-bottom: 1px solid var(--blue); padding: 4px 6px; }
+.rule-t td { padding: 6px; border-bottom: 1px solid var(--line); }
+.rule-t td:first-child { font-weight: 700; white-space: nowrap; }
+.mnemo { background: var(--chip); padding: 8px 12px; border-radius: 4px; }
+.example { display: flex; flex-direction: column; gap: 6px; }
+.dict-tools { display: flex; flex-direction: column; gap: 10px; }
+#dict-q { font: inherit; padding: 10px 12px; border: 2px solid var(--line); border-radius: 4px; background: var(--sheet); color: var(--ink); width: 100%; }
+.dict-list { display: flex; flex-direction: column; }
+.dict-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.dict-t { background: none; border: none; padding: 0; font-weight: 700; font-size: 1.05rem; display: flex; align-items: baseline; gap: 8px; text-align: left; }
+.dict-t span { font-size: .7rem; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+.dict-item p { margin: 2px 0 0; font-size: .9rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { .stamp.hit, .sheet { animation: none; } .mode, .bar i, .timer i { transition: none; } }
 </style>
 </head>
 <body>
@@ -286,6 +337,215 @@ const ACCOUNTS = {
 };
 const CAT = { asset: "資産", liab: "負債", eq: "純資産", rev: "収益", exp: "費用" };
 
+/* 入門レベルの仕訳（lv:1）。既存の復習記録の番号がずれないよう末尾に追加する */
+JOURNAL.push(...[
+  { q: "商品50,000円を売り上げ、代金は現金で受け取った。",
+    a: "現金:50000 | 売上:50000", w: ["売上:50000 | 現金:50000", "現金:50000 | 仕入:50000", "売掛金:50000 | 売上:50000"],
+    e: "現金（資産）が増えたので借方。売上（収益）が発生したので貸方。" },
+  { q: "商品30,000円を仕入れ、代金は掛けとした。",
+    a: "仕入:30000 | 買掛金:30000", w: ["仕入:30000 | 売掛金:30000", "買掛金:30000 | 仕入:30000", "仕入:30000 | 現金:30000"],
+    e: "仕入（費用）の発生は借方。後で払う義務＝買掛金（負債）が増えたので貸方。" },
+  { q: "得意先から売掛金20,000円を現金で回収した。",
+    a: "現金:20000 | 売掛金:20000", w: ["売掛金:20000 | 現金:20000", "現金:20000 | 売上:20000", "現金:20000 | 買掛金:20000"],
+    e: "現金（資産）が増えて借方、売掛金（資産）が減って貸方。回収は売上ではない（売上は売ったときに計上済み）。" },
+  { q: "仕入先に買掛金40,000円を小切手を振り出して支払った。",
+    a: "買掛金:40000 | 当座預金:40000", w: ["買掛金:40000 | 現金:40000", "当座預金:40000 | 買掛金:40000", "仕入:40000 | 当座預金:40000"],
+    e: "買掛金（負債）が減ったので借方。自分が振り出した小切手は当座預金（資産）の減少で貸方。" },
+  { q: "事務用のパソコン100,000円を購入し、代金は月末に支払うこととした。",
+    a: "備品:100000 | 未払金:100000", w: ["備品:100000 | 買掛金:100000", "仕入:100000 | 未払金:100000", "消耗品費:100000 | 現金:100000"],
+    e: "商品ではないので仕入ではなく備品（資産）。商品以外の代金の後払いは買掛金ではなく未払金（負債）。" },
+  { q: "銀行から500,000円を借り入れ、当座預金に入金された。",
+    a: "当座預金:500000 | 借入金:500000", w: ["借入金:500000 | 当座預金:500000", "当座預金:500000 | 資本金:500000", "当座預金:500000 | 受取利息:500000"],
+    e: "当座預金（資産）が増えて借方。返す義務＝借入金（負債）が増えて貸方。" },
+  { q: "従業員に給料200,000円を現金で支払った。",
+    a: "給料:200000 | 現金:200000", w: ["現金:200000 | 給料:200000", "給料:200000 | 未払金:200000", "未払費用:200000 | 現金:200000"],
+    e: "給料（費用）の発生は借方。現金（資産）の減少は貸方。" },
+  { q: "会社を設立し、株式を発行して1,000,000円の払込みを受け、当座預金とした。全額を資本金とする。",
+    a: "当座預金:1000000 | 資本金:1000000", w: ["資本金:1000000 | 当座預金:1000000", "当座預金:1000000 | 借入金:1000000", "当座預金:1000000 | 売上:1000000"],
+    e: "当座預金（資産）が増えて借方。株主からの出資＝資本金（純資産）が増えて貸方。" },
+  { q: "商品60,000円を売り上げ、代金として約束手形を受け取った。",
+    a: "受取手形:60000 | 売上:60000", w: ["支払手形:60000 | 売上:60000", "売掛金:60000 | 売上:60000", "受取手形:60000 | 仕入:60000"],
+    e: "受け取った手形は受取手形（資産）。自分が振り出した手形なら支払手形（負債）。" },
+  { q: "借入金の利息3,000円を現金で支払った。",
+    a: "支払利息:3000 | 現金:3000", w: ["借入金:3000 | 現金:3000", "受取利息:3000 | 現金:3000", "支払利息:3000 | 借入金:3000"],
+    e: "利息は借入金の返済ではなく、お金を借りたことのコスト＝支払利息（費用）。" },
+  { q: "商品50,000円を売り上げた。代金のうち10,000円は受け取っていた手付金と相殺し、残額は掛けとした。",
+    a: "前受金:10000+売掛金:40000 | 売上:50000", w: ["前払金:10000+売掛金:40000 | 売上:50000", "売掛金:50000 | 売上:50000", "前受金:10000+売掛金:40000 | 売上:40000"],
+    e: "前受金（負債）は商品を渡したことで義務がなくなるので借方で減らす。残りは売掛金。" },
+  { q: "現金の実際有高が帳簿残高より2,000円少なかった。原因は調査中である。",
+    a: "現金過不足:2000 | 現金:2000", w: ["現金:2000 | 現金過不足:2000", "雑損:2000 | 現金:2000", "現金過不足:2000 | 雑益:2000"],
+    e: "実際に合わせて現金を減らし（貸方）、相手を一時的な現金過不足にしておく。決算まで原因不明なら雑損へ。" },
+].map(x => ({ ...x, lv: 1 })));
+
+/* 用語じてん: [用語, 分類, やさしい説明, 関連語（、区切り）, 別表記（、区切り）] */
+const GLOSSARY = [
+  ["仕訳","基本","取引を「借方（左）」と「貸方（右）」に分けて、勘定科目と金額で記録すること。簿記はすべてここから始まる。","借方、貸方、勘定科目"],
+  ["借方","基本","仕訳の左側（かりかた）。資産の増加、負債・純資産の減少、費用の発生を書く。","貸方、仕訳"],
+  ["貸方","基本","仕訳の右側（かしかた）。資産の減少、負債・純資産の増加、収益の発生を書く。","借方、仕訳"],
+  ["勘定科目","基本","「現金」「売上」のように、取引の中身を分類する名前。どの科目も資産・負債・純資産・収益・費用のどれか（またはそのマイナス）に属する。","資産、負債、純資産、収益、費用","勘定"],
+  ["資産","基本","会社が持っている財産や、将来お金などを受け取れる権利。現金、売掛金、建物など。増えたら借方。","負債、純資産、貸借対照表"],
+  ["負債","基本","将来お金などを支払う義務。買掛金、借入金など。増えたら貸方。","資産、純資産"],
+  ["純資産","基本","資産から負債を引いた残り。株主が出したお金（資本金）と、これまでの利益の蓄えなど。増えたら貸方。","資本金、繰越利益剰余金、株主資本"],
+  ["収益","基本","もうけの原因になるもの。売上、受取利息など。発生したら貸方。","費用、損益計算書"],
+  ["費用","基本","もうけを得るために使ったもの。仕入、給料、支払利息など。発生したら借方。","収益、損益計算書"],
+  ["貸借対照表","基本","決算日時点の資産・負債・純資産の一覧表（B/S）。「資産＝負債＋純資産」になる。会社の財政状態を表す。","損益計算書","B/S"],
+  ["損益計算書","基本","1年間の収益と費用、その差額である利益をまとめた表（P/L）。会社の経営成績を表す。","貸借対照表、売上総利益、営業利益","P/L"],
+  ["三分法","基本","商品売買を「仕入」「売上」「繰越商品」の3つの勘定で記録する方法。買ったら仕入（費用）、売ったら売上（収益）、期末の在庫は繰越商品（資産）。","仕入、売上、繰越商品、売上原価"],
+  ["決算","基本","会計期間の終わりに帳簿を締めくくり、貸借対照表・損益計算書を作る手続き。減価償却や経過勘定などの調整（決算整理）を行う。","期末、経過勘定、減価償却","決算整理、決算日"],
+  ["期首","基本","会計期間（ふつう1年）の初日。3月決算の会社なら4月1日。","期末、当期"],
+  ["期末","基本","会計期間の最終日＝決算日。3月決算の会社なら3月31日。","期首、決算"],
+  ["当期","基本","いまの会計期間。1つ前を前期、1つ後を翌期という。","期首、期末","前期、翌期"],
+  ["帳簿価額","基本","帳簿に載っている金額（簿価）。固定資産なら「取得原価 − 減価償却累計額」。","取得原価、減価償却累計額","簿価"],
+  ["取得原価","基本","資産を手に入れたときに支払った金額。運賃などの付随費用も含める。","帳簿価額、時価"],
+  ["時価","基本","その時点で市場で取引されている価格。","取得原価、売買目的有価証券"],
+  ["評価勘定","基本","別の勘定の金額を間接的に修正する勘定。貸倒引当金や減価償却累計額は、資産から差し引いて読む。","貸倒引当金、減価償却累計額"],
+  ["一年基準","基本","決算日の翌日から1年以内に現金化・支払いされるものを「流動」、1年を超えるものを「固定」に分けるルール。","流動資産、長期前払費用"],
+  ["流動資産","基本","1年以内に現金化される資産や、商品など営業の流れの中にある資産。","固定資産、一年基準"],
+  ["固定資産","基本","建物・備品・土地など、1年を超えて使う資産。ソフトウェアやのれんなど形のないものもある。","減価償却、流動資産"],
+  ["会計基準","基本","会社が会計処理をするときに従うルール。収益認識基準、税効果会計基準など。","収益認識、税効果会計"],
+  ["掛け","基本","代金を後でまとめて払う（受け取る）約束で取引すること。売った側は売掛金、買った側は買掛金を使う。","売掛金、買掛金"],
+
+  ["現金","資産","紙幣・硬貨のほか、他人が振り出した小切手など、すぐ換金できるものも含む。","当座預金、小切手、現金過不足"],
+  ["当座預金","資産","小切手を振り出せる銀行預金。自分で小切手を振り出すと当座預金が減る。","小切手、当座借越"],
+  ["小切手","資産","銀行に「この人に払ってください」と頼む証券。自分が振り出したら当座預金の減少、他人から受け取ったら現金の増加。","現金、当座預金"],
+  ["売掛金","資産","商品を掛けで売ったときの、後で代金を受け取る権利。","掛け、買掛金、貸倒れ"],
+  ["受取手形","資産","代金として受け取った約束手形。期日にお金を受け取れる。","支払手形、手形の割引"],
+  ["クレジット売掛金","資産","クレジットカード払いで売ったときの、信販会社からお金を受け取る権利。手数料を引いた額で計上する。","売掛金、支払手数料"],
+  ["未収入金","資産","商品以外のもの（備品など）を売って、まだ受け取っていない代金。商品なら売掛金を使う。","売掛金、未払金"],
+  ["前払金","資産","商品を受け取る前に払った手付金。後で商品を受け取れる権利。","前受金"],
+  ["仮払金","資産","支払ったが、内容や金額がまだ決まっていないときに一時的に使う科目。","仮受金"],
+  ["繰越商品","資産","期末に売れ残っている商品（在庫）。三分法で使う。","三分法、売上原価"],
+  ["備品","資産","パソコン・机・棚など、1年以上使う事務用品。固定資産なので減価償却する。","固定資産、減価償却"],
+  ["前払費用","資産","次の期以降のサービス分を先に払った費用。決算で当期の費用から外し、資産として繰り延べる。前払保険料・前払家賃など。","経過勘定、繰り延べ、長期前払費用","前払保険料、前払家賃"],
+  ["未収収益","資産","サービスはもう提供したのに、まだ受け取っていない収益。決算で見越して計上する。未収利息など。","経過勘定、見越し","未収利息"],
+  ["有価証券","資産","株式や社債など、財産的な価値をもつ証券。持つ目的で分類し、それぞれ期末の評価方法が違う。","売買目的有価証券、満期保有目的債券、子会社株式、その他有価証券"],
+  ["売買目的有価証券","資産","値上がり益を狙って短期で売買する有価証券。期末は時価で評価し、差額は当期の損益にする。","有価証券評価損益、時価"],
+  ["満期保有目的債券","資産","満期まで持ち続けるつもりの社債など。原則は取得原価だが、額面との差額が金利の調整なら償却原価法を使う。","償却原価法、有価証券利息","満期保有目的の債券"],
+  ["子会社株式","資産","支配している子会社の株式。売るつもりがないので取得原価のまま評価する。関連会社株式も同じ。","有価証券","関連会社株式"],
+  ["その他有価証券","資産","売買目的・満期保有目的・子会社株式などのどれにも当てはまらない有価証券（持ち合い株など）。期末は時価で評価し、差額は原則として純資産に入れる。","全部純資産直入法、その他有価証券評価差額金"],
+  ["リース資産","資産","ファイナンス・リースで借りている資産。実質的に買ったのと同じとみなして計上する。","ファイナンス・リース、リース債務"],
+  ["のれん","資産","会社を買収したとき、相手の純資産（時価）より多く払った部分。ブランド力などの目に見えない価値。20年以内に規則的に償却する。","固定資産","のれん償却"],
+  ["繰延税金資産","資産","税効果会計で、将来の税金が減る効果を資産として計上したもの。","税効果会計、一時差異"],
+  ["長期前払費用","資産","前払費用のうち、決算日の翌日から1年を超えて費用になる部分。固定資産（投資その他の資産）に表示する。","前払費用、一年基準"],
+  ["繰延資産","資産","支出の効果が将来にも及ぶので、資産として計上し何年かに分けて償却できる費用。社債発行費、創立費など。","社債発行費"],
+  ["仮払法人税等","資産","法人税等を中間納付したときに使う科目。決算で確定した法人税等と相殺する。","法人税等、中間納付、未払法人税等"],
+  ["仮払消費税","資産","税抜方式で、仕入などのときに支払った消費税。決算で仮受消費税と相殺する。","仮受消費税、税抜方式"],
+
+  ["買掛金","負債","商品を掛けで仕入れたときの、後で代金を支払う義務。","掛け、売掛金"],
+  ["支払手形","負債","代金の支払いのために自分が振り出した約束手形。期日に支払う義務。","受取手形"],
+  ["未払金","負債","商品以外のもの（備品など）を買って、まだ払っていない代金。商品なら買掛金を使う。","買掛金、未収入金"],
+  ["前受金","負債","商品を渡す前に受け取った手付金。商品を渡す義務があるので負債。","前払金、契約負債"],
+  ["仮受金","負債","お金を受け取ったが、内容がまだわからないときに一時的に使う科目。内容が判明したら正しい科目に振り替える。","仮払金"],
+  ["借入金","負債","銀行などから借りたお金。返済する義務。","支払利息、当座借越"],
+  ["当座借越","負債","当座預金の残高を超えて引き出したとき、銀行から一時的に借りている状態。決算では負債として表示する。","当座預金、借入金"],
+  ["社債","負債","会社が発行する借用証書。多くの人から長期でお金を借りる手段。","額面、償却原価法、社債発行費"],
+  ["額面","負債","社債などに書かれている金額。満期に返す（受け取る）のはこの金額。","社債、償却原価法"],
+  ["未払費用","負債","サービスはもう受けたのに、まだ払っていない費用。決算で見越して計上する。未払利息など。","経過勘定、見越し","未払利息"],
+  ["前受収益","負債","次の期以降のサービス分を先に受け取った収益。決算で当期の収益から外し、負債として繰り延べる。","経過勘定、繰り延べ","前受家賃"],
+  ["未払配当金","負債","株主総会で配当が決まったが、まだ株主に支払っていない額。","配当、繰越利益剰余金"],
+  ["未払法人税等","負債","確定した法人税等のうち、中間納付分を差し引いてまだ払っていない額。","法人税等、仮払法人税等"],
+  ["仮受消費税","負債","税抜方式で、売上のときに受け取った消費税。","仮払消費税、税抜方式"],
+  ["リース債務","負債","ファイナンス・リースで将来支払うリース料の義務。","リース資産、ファイナンス・リース"],
+  ["契約負債","負債","商品やサービスを渡す前に受け取った対価。収益認識基準での前受金にあたる。","前受金、収益認識"],
+  ["引当金","負債","将来の費用や損失に備えて、前もって見積もって計上しておく額。貸倒引当金（資産のマイナス）、賞与引当金（負債）など。","貸倒引当金"],
+  ["繰延税金負債","負債","税効果会計で、将来の税金が増える効果を負債として計上したもの。","繰延税金資産、税効果会計"],
+
+  ["資本金","純資産","株主が出資したお金のうち、資本金とした額。","純資産、資本準備金"],
+  ["資本準備金","純資産","株主の出資のうち資本金にしなかった額など。会社法で積み立てる準備金のひとつ。","資本金、準備金"],
+  ["その他資本剰余金","純資産","資本取引から生じた剰余金のうち資本準備金以外のもの。自己株式を帳簿価額より高く処分したときの差益など。","自己株式、資本取引"],
+  ["利益準備金","純資産","配当をするときに、会社法で積み立てが求められる利益の蓄え。","準備金、配当"],
+  ["繰越利益剰余金","純資産","これまでの利益の累計のうち、使い道がまだ決まっていない部分。配当の財源になる。","剰余金、配当、利益準備金"],
+  ["剰余金","純資産","純資産のうち資本金以外で、株主への配当などに使える部分。","繰越利益剰余金、配当"],
+  ["準備金","純資産","資本準備金と利益準備金のこと。配当するときは、準備金の合計が資本金の4分の1になるまで配当額の10分の1を積み立てる。","資本準備金、利益準備金"],
+  ["配当","純資産","会社のもうけ（剰余金）を株主に分けること。株主総会で決める。","剰余金、未払配当金"],
+  ["自己株式","純資産","自分の会社が発行した株式を買い戻したもの。資産ではなく、純資産のマイナスとして表示する。","その他資本剰余金、株主資本"],
+  ["新株予約権","純資産","決められた価格で会社の株を受け取れる権利。会社が発行すると純資産の部に、株主資本とは分けて表示する。","株主資本"],
+  ["その他有価証券評価差額金","純資産","その他有価証券を時価評価したときの差額。損益にせず純資産に直接入れる。","その他有価証券、全部純資産直入法"],
+  ["株主資本","純資産","純資産のうち株主に帰属する部分。資本金・資本剰余金・利益剰余金・自己株式（マイナス）からなる。","純資産、自己株式"],
+  ["資本取引","純資産","株主との出資や払い戻しなどのやりとり。もうけではないので損益にはしない。","その他資本剰余金"],
+
+  ["売上","収益","商品を売ったときの収益。","三分法、売上原価"],
+  ["受取利息","収益","預金や貸付金から受け取る利息。","未収収益"],
+  ["有価証券利息","収益","社債などの債券から受け取る利息。償却原価法で加算する額もここに含める。","償却原価法、満期保有目的債券"],
+  ["有価証券評価損益","収益","売買目的有価証券を時価で評価したときの差額。益なら収益、損なら費用として当期の損益になる。","売買目的有価証券"],
+  ["為替差損益","収益","外国通貨建ての取引で、取引時と決済時（または決算時）のレートの違いから生じる損益。","決済"],
+  ["雑益","収益","金額が小さく、他の科目に当てはまらない収益。原因不明の現金の過剰など。","雑損、現金過不足"],
+  ["売上総利益","収益","売上高 − 売上原価。いわゆる粗利。ここから販売費及び一般管理費を引くと営業利益。","売上原価、営業利益"],
+  ["営業利益","収益","売上総利益 − 販売費及び一般管理費。本業でのもうけ。","売上総利益、販売費及び一般管理費"],
+  ["貸倒引当金戻入","収益","貸倒引当金の残高が必要額より多いときに、多い分を取り崩して計上する収益。","貸倒引当金、差額補充法"],
+
+  ["仕入","費用","商品を仕入れたときの費用（三分法）。","三分法、売上原価"],
+  ["売上原価","費用","売れた商品の仕入原価。期首商品＋当期仕入−期末商品で求める。","三分法、繰越商品、売上総利益"],
+  ["給料","費用","従業員に支払う給与。"],
+  ["支払利息","費用","借入金などに対して支払う利息。","借入金、未払費用"],
+  ["減価償却","費用","建物・備品などは使うほど価値が減るので、取得原価を使える年数に分けて少しずつ費用にすること。その費用が減価償却費。","定額法、定率法、耐用年数、減価償却累計額","減価償却費"],
+  ["減価償却累計額","費用","これまでに減価償却した額の合計。間接法で使い、固定資産から差し引いて読む（評価勘定）。","間接法、帳簿価額、評価勘定"],
+  ["間接法","費用","減価償却した分を減価償却累計額に積み上げて記帳する方法。資産の金額は取得原価のまま残る。","直接法、減価償却累計額"],
+  ["直接法","費用","減価償却した分を、固定資産の金額から直接減らして記帳する方法。","間接法"],
+  ["定額法","費用","毎年同じ額を償却する方法。（取得原価−残存価額）÷耐用年数。","定率法、耐用年数、残存価額"],
+  ["定率法","費用","期首の帳簿価額に一定の償却率をかけて償却する方法。最初の年ほど償却額が大きい。","定額法、償却率"],
+  ["償却率","費用","定率法などで帳簿価額にかける率。","定率法"],
+  ["耐用年数","費用","固定資産を使える年数。減価償却の期間になる。","減価償却、定額法"],
+  ["残存価額","費用","耐用年数が終わったときに残ると見込む価値。今の試験問題ではゼロのことが多い。","定額法"],
+  ["月割り","費用","1年分の金額を12で割り、該当する月数分だけ計上すること。期中に取得した資産の減価償却などで使う。","減価償却、経過勘定","月割"],
+  ["貸倒れ","費用","取引先の倒産などで、売掛金などが回収できなくなること。","貸倒引当金、貸倒損失","貸倒"],
+  ["貸倒引当金","費用","売掛金などのうち将来回収できなくなりそうな額を見積もって、前もって計上しておくもの。資産から差し引いて読む（評価勘定）。","貸倒引当金繰入、差額補充法、評価勘定"],
+  ["貸倒引当金繰入","費用","貸倒引当金を設定するとき（増やすとき）に計上する費用。","貸倒引当金、差額補充法"],
+  ["貸倒損失","費用","貸倒れのうち、貸倒引当金で足りない分や、当期に発生した債権の貸倒れ分を処理する費用。","貸倒れ、貸倒引当金"],
+  ["差額補充法","費用","貸倒引当金の「必要な額」と「いまの残高」の差額だけを繰り入れる方法。残高が多すぎれば戻入する。","貸倒引当金繰入、貸倒引当金戻入"],
+  ["棚卸減耗損","費用","帳簿上の在庫数より実際の数が少ないとき（紛失・破損など）の損失。","実地棚卸高、商品評価損、原価性"],
+  ["商品評価損","費用","在庫の値打ち（正味売却価額）が取得原価より下がったときの損失。","棚卸減耗損"],
+  ["帳簿棚卸高","費用","帳簿の記録から計算した期末在庫の金額。","実地棚卸高、棚卸減耗損"],
+  ["実地棚卸高","費用","実際に数えて確認した期末在庫の金額。","帳簿棚卸高、棚卸減耗損"],
+  ["原価性","費用","毎期ふつうに起こる程度のもので、売上原価などに含めるのが適切という性質。原価性がない異常なものは営業外費用や特別損失にする。","棚卸減耗損、営業外費用"],
+  ["手形の割引","費用","期日前の手形を銀行に売って現金化すること。差し引かれる割引料は手形売却損で処理する。","手形売却損、受取手形","割り引","割引料"],
+  ["手形売却損","費用","手形を割り引いたときに差し引かれた割引料。","手形の割引"],
+  ["支払手数料","費用","クレジットカード会社や銀行などに払う手数料。","クレジット売掛金"],
+  ["修繕費","費用","固定資産を元の状態に戻すための支出（収益的支出）。","資本的支出"],
+  ["資本的支出","費用","固定資産の価値を高めたり、使える期間を延ばしたりする支出。費用ではなく固定資産の取得原価に加える。元に戻すだけなら収益的支出（修繕費）。","修繕費","収益的支出"],
+  ["法人税等","費用","会社のもうけにかかる法人税・住民税・事業税。決算で年間の額を計上する。","仮払法人税等、未払法人税等"],
+  ["中間納付","費用","期の途中で法人税等の一部を前払いすること。仮払法人税等で処理する。","仮払法人税等"],
+  ["固定資産売却損","費用","固定資産を帳簿価額より安く売ったときの損失。高く売れたら固定資産売却益（収益）。","帳簿価額","固定資産売却益"],
+  ["雑損","費用","金額が小さく、他の科目に当てはまらない損失。原因不明の現金の不足など。","雑益、現金過不足"],
+  ["営業外費用","費用","本業以外の活動で毎期発生する費用。支払利息、手形売却損など。","営業利益、特別損失"],
+  ["特別損失","費用","災害など、臨時・異常に発生した損失。","営業外費用"],
+  ["販売費及び一般管理費","費用","商品を売るための費用と会社全体の管理費。給料・広告費・家賃など。販管費。","営業利益","販管費"],
+  ["社債発行費","費用","社債を発行するためにかかった費用。原則は支出時の営業外費用だが、繰延資産にして償還期限まで償却することもできる。","社債、繰延資産"],
+  ["減損","費用","固定資産の収益力が落ちて投資額を回収できない見込みになったとき、帳簿価額を回収可能な額まで下げること。","固定資産"],
+
+  ["現金過不足","論点","帳簿の現金残高と実際の現金が合わないときに、一時的に使う勘定。決算まで原因不明なら雑損または雑益に振り替える。","雑損、雑益"],
+  ["経過勘定","論点","前払費用・前受収益・未払費用・未収収益の4つ。お金の受け払いのタイミングと、費用・収益の期間のずれを決算で調整するための勘定。","前払費用、前受収益、未払費用、未収収益"],
+  ["繰り延べ","論点","当期に払った（受け取った）もののうち、翌期以降の分を当期の費用（収益）から除いて次の期へ回すこと。前払費用・前受収益になる。","前払費用、前受収益","繰り延べる","繰延べ"],
+  ["見越し","論点","まだお金の受け払いはないが、当期の分として費用・収益を計上すること。未払費用・未収収益になる。","未払費用、未収収益","見越す"],
+  ["償却原価法","論点","額面と取得価額の差額を、満期までの間に少しずつ帳簿価額に加減して、満期に額面と一致させる方法。差額は利息として扱う。","満期保有目的債券、社債、有価証券利息"],
+  ["全部純資産直入法","論点","その他有価証券の評価差額を、すべて純資産の部（その他有価証券評価差額金）に計上する方法。","その他有価証券、洗い替え"],
+  ["洗い替え","論点","期末に行った評価替えを、翌期首に元の帳簿価額に戻す処理。その他有価証券などで行う。","全部純資産直入法"],
+  ["税効果会計","論点","会計上の利益と税法上の所得のずれを調整して、法人税等を利益に見合う額にする仕組み。繰延税金資産・負債が出てくる。","一時差異、繰延税金資産、繰延税金負債"],
+  ["一時差異","論点","会計と税法で資産・負債の金額がずれていて、いずれ解消されるもの。将来の税金を減らすものを将来減算一時差異という。","税効果会計、繰延税金資産","将来減算一時差異"],
+  ["先入先出法","論点","先に仕入れたものから先に払い出したと考えて、払出単価を決める方法。","移動平均法、総平均法"],
+  ["移動平均法","論点","仕入れるたびに、そのときの在庫全体の平均単価を計算し直す方法。","先入先出法、総平均法"],
+  ["総平均法","論点","一定期間の仕入総額をまとめて平均単価を出す方法。","移動平均法"],
+  ["税抜方式","論点","消費税を売上や仕入に含めず、仮払消費税・仮受消費税で別に記録する方法。","仮払消費税、仮受消費税"],
+  ["収益認識","論点","いつ・いくら売上などの収益を計上するかのルール。「収益認識に関する会計基準」では5つのステップで考える。","履行義務、契約負債"],
+  ["履行義務","論点","顧客に商品やサービスを渡す約束のこと。これを果たした時（または果たすにつれて）収益を計上する。","収益認識"],
+  ["ファイナンス・リース","論点","途中解約できず、使う側が実質的に資産を買ったのと同じといえるリース。売買と同じように処理する。","リース資産、リース債務、利子込み法"],
+  ["利子込み法","論点","リース料総額（利息込み）でリース資産・リース債務を計上する簡便な方法。利息分を除く方法は利子抜き法。","ファイナンス・リース","利子抜き法"],
+  ["決済","論点","代金を支払う、または受け取って取引を完了させること。","為替差損益"],
+];
+
+const GLOSS = {}, ALIAS = {};
+GLOSSARY.forEach(([t, c, d, rel = "", al = ""], i) => {
+  GLOSS[t] = { t, c, d, rel: rel ? rel.split("、") : [] };
+  ALIAS[t] = t; al.split("、").filter(Boolean).forEach(a => ALIAS[a] = t);
+});
+const TERM_RE = new RegExp(Object.keys(ALIAS).sort((a, b) => b.length - a.length).map(s => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")).join("|"), "g");
+// 文中の用語をタップできるようにする（同じ用語は1回だけ）
+function L(s) {
+  const seen = new Set();
+  return String(s).replace(TERM_RE, m => { const t = ALIAS[m]; if (seen.has(t)) return m; seen.add(t);
+    return `<span class="term" role="button" tabindex="0" data-t="${t}">${m}</span>`; });
+}
+
 /* ======================== 計算問題ジェネレータ ======================== */
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -341,16 +601,54 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 let S = null; let timerId = null;
 
 function parseSide(s) { return s.trim().split("+").map(p => { const [n, a] = p.split(":"); return { n: n.trim(), a: +a }; }); }
-function slip(str) {
+function slip(str, link) {
   const [l, r] = str.split("|"); const dr = parseSide(l), cr = parseSide(r); const n = Math.max(dr.length, cr.length);
+  const nm = x => x ? (link ? L(x.n) : x.n) : "";
   let rows = "";
   for (let i = 0; i < n; i++) {
     const d = dr[i], c = cr[i];
-    rows += `<tr><td>${d ? d.n : ""}</td><td class="amt">${d ? fmt(d.a) : ""}</td><td class="mid">${c ? c.n : ""}</td><td class="amt">${c ? fmt(c.a) : ""}</td></tr>`;
+    rows += `<tr><td>${nm(d)}</td><td class="amt">${d ? fmt(d.a) : ""}</td><td class="mid">${nm(c)}</td><td class="amt">${c ? fmt(c.a) : ""}</td></tr>`;
   }
   return `<table class="slip"><colgroup><col style="width:28%"><col style="width:22%"><col style="width:28%"><col style="width:22%"></colgroup><thead><tr><th>借方</th><th></th><th class="mid">貸方</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+/* ---- 用語シート ---- */
+document.body.insertAdjacentHTML("beforeend", `
+  <div class="sheet-bg" id="sheet-bg" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t" hidden>
+    <div class="sheet-in">
+      <div class="sheet-head"><span class="sheet-cat" id="sheet-c"></span><button class="back" id="sheet-x">閉じる</button></div>
+      <h3 id="sheet-t"></h3><p id="sheet-d"></p><div class="rel" id="sheet-r"></div>
+    </div>
+  </div>`);
+const sheet = document.getElementById("sheet"), sheetBg = document.getElementById("sheet-bg");
+let sheetReturn = null;
+function openTerm(t) {
+  const g = GLOSS[t]; if (!g) return;
+  if (sheet.hidden) sheetReturn = document.activeElement;
+  document.getElementById("sheet-c").textContent = g.c === "基本" || g.c === "論点" ? g.c : g.c + "の勘定科目・用語";
+  document.getElementById("sheet-t").textContent = g.t;
+  document.getElementById("sheet-d").innerHTML = L(g.d).replace(new RegExp(`<span class="term"[^>]*data-t="${g.t}">([^<]*)</span>`), "$1");
+  const rel = g.rel.filter(r => GLOSS[r]);
+  document.getElementById("sheet-r").innerHTML = rel.length ? `<span class="note">関連する言葉</span><div class="chips">${rel.map(r => `<button class="chip" data-t="${r}">${r}</button>`).join("")}</div>` : "";
+  sheet.hidden = false; sheetBg.hidden = false; sheet.scrollTop = 0;
+  document.getElementById("sheet-x").focus();
+}
+function closeTerm() { sheet.hidden = true; sheetBg.hidden = true; if (sheetReturn && sheetReturn.focus) sheetReturn.focus(); }
+document.getElementById("sheet-x").onclick = closeTerm;
+sheetBg.onclick = closeTerm;
+document.addEventListener("click", e => {
+  const el = e.target.closest(".term, .chip[data-t]");
+  if (!el) return;
+  e.preventDefault(); e.stopPropagation(); openTerm(el.dataset.t);
+}, true);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !sheet.hidden) return closeTerm();
+  const el = e.target.closest && e.target.closest(".term");
+  if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openTerm(el.dataset.t); }
+});
+
+/* ---- ホーム ---- */
 function home() {
   clearInterval(timerId);
   const acc = store.total ? Math.round(store.correct / store.total * 100) : 0;
@@ -362,24 +660,31 @@ function home() {
       <div><b>${streak()}</b><span>連続日数</span></div>
       <div><b>${acc}<small style="font-size:.6em">%</small></b><span>通算正答率</span></div>
     </div>
+    <button class="starter" data-m="dict"><b>はじめたばかりの人へ</b><span>まず「仕訳の基本ルール」を1分で。問題文や解説の<u class="term-sample">点線の言葉</u>はタップすると意味が出ます。</span></button>
     <div class="modes">
-      <button class="mode" data-m="journal"><span class="ic">仕</span><span><h3>仕訳ドリル</h3><p>取引を読んで正しい伝票を選ぶ。全10問・約3分</p></span><span class="meta">最高 ${store.best.journal ?? "–"}/10</span></button>
+      <button class="mode" data-m="journal1"><span class="ic">入</span><span><h3>仕訳ドリル 入門</h3><p>現金売上・掛け仕入など基本の取引。全10問</p></span><span class="meta">最高 ${store.best.journal1 ?? "–"}/10</span></button>
+      <button class="mode" data-m="journal"><span class="ic">仕</span><span><h3>仕訳ドリル 本試験レベル</h3><p>引当金・有価証券・自己株式など。全10問・約3分</p></span><span class="meta">最高 ${store.best.journal ?? "–"}/10</span></button>
       <button class="mode" data-m="sort"><span class="ic">分</span><span><h3>勘定科目ふりわけ</h3><p>60秒で資産・負債・純資産・収益・費用に仕分ける</p></span><span class="meta">最高 ${store.best.sort ?? "–"}問</span></button>
       <button class="mode" data-m="calc"><span class="ic">算</span><span><h3>電卓いらずの計算</h3><p>減価償却・経過勘定・引当金を暗算で。毎回新しい数字で5問</p></span><span class="meta">最高 ${store.best.calc ?? "–"}/5</span></button>
       <button class="mode" data-m="ox"><span class="ic">○</span><span><h3>理論○×</h3><p>会計基準・表示区分の知識をサクッと確認。全10問</p></span><span class="meta">最高 ${store.best.ox ?? "–"}/10</span></button>
-      ${weak ? `<button class="mode" data-m="weak"><span class="ic">復</span><span><h3>間違えた仕訳を復習</h3><p>過去に外した仕訳だけを出題。正解すると卒業</p></span><span class="meta">${weak}問</span></button>` : ""}
+      ${weak ? `<button class="mode" data-m="weak"><span class="ic">復</span><span><h3>間違えた仕訳を復習</h3><p>外した・分からなかった仕訳だけを出題。正解すると卒業</p></span><span class="meta">${weak}問</span></button>` : ""}
+      <button class="mode" data-m="dict"><span class="ic">辞</span><span><h3>用語じてん</h3><p>基本ルールと、よく出る用語${GLOSSARY.length}語をやさしく解説</p></span><span class="meta">検索できる</span></button>
     </div>
     <p class="note">記録はこの端末のブラウザにだけ保存されます。</p>`;
-  app.querySelectorAll(".mode").forEach(b => b.onclick = () => start(b.dataset.m));
+  app.querySelectorAll("[data-m]").forEach(b => b.onclick = () => start(b.dataset.m));
+  window.scrollTo(0, 0);
 }
 
 function start(m) {
-  if (m === "journal") S = { m, items: shuffle(JOURNAL.map((_, i) => i)).slice(0, 10) };
+  if (m === "dict") return dict();
+  if (m === "sort") return startSort();
+  const lvIdx = lv => shuffle(JOURNAL.map((x, i) => [x, i]).filter(([x]) => (x.lv || 2) === lv).map(([, i]) => i)).slice(0, 10);
+  if (m === "journal1") S = { m: "journal", items: lvIdx(1) };
+  if (m === "journal") S = { m, items: lvIdx(2) };
   if (m === "weak") S = { m: "journal", weak: true, items: shuffle(store.weakJ).slice(0, 10) };
   if (m === "ox") S = { m, items: shuffle(OX).slice(0, 10) };
   if (m === "calc") S = { m, items: shuffle(CALC).slice(0, 5).map(f => f()) };
-  if (m === "sort") return startSort();
-  Object.assign(S, { i: 0, score: 0, combo: 0, miss: [] });
+  Object.assign(S, { start: m, i: 0, score: 0, combo: 0, miss: [] });
   render();
 }
 
@@ -390,13 +695,18 @@ function shell(inner, tag) {
     ${inner}`;
 }
 function bindQuit() { document.getElementById("quit").onclick = home; }
-function stampHTML(ok) { return `<div class="stamp hit ${ok ? "" : "ng"}">${ok ? "正解" : "誤り"}</div>`; }
+function stampHTML(ok, unknown) { return `<div class="stamp hit ${ok ? "" : "ng"}">${ok ? "正解" : unknown ? "要復習" : "誤り"}</div>`; }
 function nextBtn() { return `<div class="actions"><button class="primary" id="next">${S.i + 1 < S.items.length ? "次へ" : "結果を見る"}</button></div>`; }
+const unknownBtn = `<button class="unknown" id="unknown" type="button">分からない<small>答えと解説を見る</small></button>`;
+const tapHint = `<p class="note tap-hint">点線の言葉はタップで意味が見られます</p>`;
 function afterAnswer(ok, missInfo) {
   record(ok);
   if (ok) { S.score++; S.combo++; } else { S.combo = 0; S.miss.push(missInfo); }
 }
-function bindNext() { const b = document.getElementById("next"); b.focus(); b.onclick = () => { S.i++; S.i < S.items.length ? render() : result(); }; }
+function bindNext() { const b = document.getElementById("next"); b.focus({ preventScroll: true }); b.onclick = () => { S.i++; S.i < S.items.length ? render() : result(); window.scrollTo(0, 0); }; }
+function verdict(ok, unknown, okText, ngText) {
+  return `<b class="${ok ? "v-ok" : "v-ng"}">${ok ? okText : unknown ? "大丈夫、ここで覚えよう" : ngText}</b>`;
+}
 
 function render() {
   if (S.m === "journal") return renderJournal();
@@ -407,87 +717,108 @@ function render() {
 function renderJournal() {
   const idx = S.items[S.i], it = JOURNAL[idx];
   const opts = shuffle([it.a, ...it.w]);
+  const title = S.weak ? "復習：仕訳" : it.lv === 1 ? "仕訳ドリル 入門" : "仕訳ドリル";
   app.innerHTML = shell(`
-    <div class="card" id="qcard"><span class="tag">取引</span><p class="question">${it.q}</p></div>
+    <div class="card" id="qcard"><span class="tag">取引</span><p class="question">${L(it.q)}</p></div>
     <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><span class="lab">${"ABCD"[k]}</span><div>${slip(o)}</div></button>`).join("")}</div>
-    <div id="after"></div>`, S.weak ? "復習：仕訳" : "仕訳ドリル");
+    ${unknownBtn}
+    <div id="after">${tapHint}</div>`, title);
   bindQuit();
-  app.querySelectorAll(".choice").forEach(b => b.onclick = () => {
-    const ok = opts[+b.dataset.k] === it.a;
-    app.querySelectorAll(".choice").forEach(x => { x.disabled = true; if (opts[+x.dataset.k] === it.a) x.classList.add("correct"); });
-    if (!ok) b.classList.add("wrong");
-    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok));
-    afterAnswer(ok, { q: it.q, a: slip(it.a), e: it.e });
+  let done = false;
+  const answer = (k, unknown) => {
+    if (done) return; done = true;
+    const ok = !unknown && opts[k] === it.a;
+    app.querySelectorAll(".choice").forEach(x => {
+      x.classList.add("done"); x.setAttribute("aria-disabled", "true");
+      x.querySelector("div").innerHTML = slip(opts[+x.dataset.k], true);
+      if (opts[+x.dataset.k] === it.a) x.classList.add("correct");
+    });
+    if (!ok && !unknown) app.querySelector(`.choice[data-k="${k}"]`).classList.add("wrong");
+    document.getElementById("unknown").remove();
+    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok, unknown));
+    afterAnswer(ok, { q: it.q, a: slip(it.a, true), e: it.e });
     const w = new Set(store.weakJ);
     ok ? (S.weak && w.delete(idx)) : w.add(idx);
     store.weakJ = [...w]; save();
-    document.getElementById("after").innerHTML = `<div class="explain"><b class="${ok ? "v-ok" : "v-ng"}">${ok ? "正解！" : "正解は緑の伝票"}</b><span>${it.e}</span></div>${nextBtn()}`;
+    document.getElementById("after").innerHTML = `<div class="explain">${verdict(ok, unknown, "正解！", "正解は緑の伝票")}<span>${L(it.e)}</span><span class="note">伝票の科目名もタップで意味が見られます。</span></div>${nextBtn()}`;
     bindNext();
-  });
+  };
+  app.querySelectorAll(".choice").forEach(b => b.onclick = () => answer(+b.dataset.k, false));
+  document.getElementById("unknown").onclick = () => answer(-1, true);
 }
 
 function renderOX() {
   const [q, t, e] = S.items[S.i];
   app.innerHTML = shell(`
-    <div class="card" id="qcard"><span class="tag">○か×か</span><p class="question">${q}</p></div>
+    <div class="card" id="qcard"><span class="tag">○か×か</span><p class="question">${L(q)}</p></div>
     <div class="ox"><button class="o" data-v="1" aria-label="正しい">○</button><button class="x" data-v="0" aria-label="誤り">×</button></div>
-    <div id="after"></div>`, "理論○×");
+    ${unknownBtn}
+    <div id="after">${tapHint}</div>`, "理論○×");
   bindQuit();
-  app.querySelectorAll(".ox button").forEach(b => b.onclick = () => {
-    const ok = (b.dataset.v === "1") === t;
-    app.querySelectorAll(".ox button").forEach(x => x.disabled = true); b.classList.add("picked");
-    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok));
+  const answer = (b, unknown) => {
+    const ok = !unknown && (b.dataset.v === "1") === t;
+    app.querySelectorAll(".ox button").forEach(x => x.disabled = true); if (b) b.classList.add("picked");
+    document.getElementById("unknown").remove();
+    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok, unknown));
     afterAnswer(ok, { q, a: t ? "○" : "×", e });
-    document.getElementById("after").innerHTML = `<div class="explain"><b class="${ok ? "v-ok" : "v-ng"}">答え：${t ? "○" : "×"}</b><span>${e}</span></div>${nextBtn()}`;
+    document.getElementById("after").innerHTML = `<div class="explain">${verdict(ok, unknown, "正解！", "不正解")}<span>答え：<b>${t ? "○" : "×"}</b>　${L(e)}</span></div>${nextBtn()}`;
     bindNext();
-  });
+  };
+  app.querySelectorAll(".ox button").forEach(b => b.onclick = () => answer(b, false));
+  document.getElementById("unknown").onclick = () => answer(null, true);
 }
 
 function renderCalc() {
   const it = S.items[S.i];
   app.innerHTML = shell(`
-    <div class="card" id="qcard"><span class="tag">${it.tag}</span><p class="question">${it.q}</p></div>
+    <div class="card" id="qcard"><span class="tag">${it.tag}</span><p class="question">${L(it.q)}</p></div>
     <form class="calc-row" id="f"><input id="calc-input" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="答え（円）"><span>円</span><button class="primary" type="submit">答える</button></form>
-    <div class="actions"><button class="ghost" id="skip" type="button">わからない</button></div>
-    <div id="after"></div>`, "電卓いらずの計算");
+    ${unknownBtn}
+    <div id="after">${tapHint}</div>`, "電卓いらずの計算");
   bindQuit();
-  const inp = document.getElementById("calc-input"); inp.focus();
+  const inp = document.getElementById("calc-input");
   inp.oninput = () => { const v = inp.value.replace(/[^\d]/g, ""); inp.value = v ? fmt(+v) : ""; };
-  const judge = val => {
-    const ok = val === it.ans;
-    inp.disabled = true; document.querySelector("#f button").disabled = true; document.getElementById("skip").remove();
-    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok));
+  const judge = (val, unknown) => {
+    const ok = !unknown && val === it.ans;
+    inp.disabled = true; document.querySelector("#f button").disabled = true; document.getElementById("unknown").remove();
+    document.getElementById("qcard").insertAdjacentHTML("beforeend", stampHTML(ok, unknown));
     afterAnswer(ok, { q: it.q, a: fmt(it.ans) + "円", e: it.e });
-    document.getElementById("after").innerHTML = `<div class="explain"><b class="${ok ? "v-ok" : "v-ng"}">答え：<span class="num">${fmt(it.ans)}</span>円</b><span>${it.e}</span></div>${nextBtn()}`;
+    document.getElementById("after").innerHTML = `<div class="explain">${verdict(ok, unknown, "正解！", "不正解")}<span>答え：<b class="num">${fmt(it.ans)}</b>円</span><span>${L(it.e)}</span></div>${nextBtn()}`;
     bindNext();
   };
-  document.getElementById("f").onsubmit = ev => { ev.preventDefault(); const v = inp.value.replace(/[^\d]/g, ""); if (!v) return; judge(+v); };
-  document.getElementById("skip").onclick = () => judge(NaN);
+  document.getElementById("f").onsubmit = ev => { ev.preventDefault(); const v = inp.value.replace(/[^\d]/g, ""); if (!v) return; judge(+v, false); };
+  document.getElementById("unknown").onclick = () => judge(NaN, true);
 }
 
 /* ふりわけ（60秒タイムアタック） */
 function startSort() {
   const pool = shuffle(Object.entries(ACCOUNTS).flatMap(([k, list]) => list.map(n => [n, k])));
-  S = { m: "sort", pool, i: 0, score: 0, combo: 0, miss: [], left: 60, end: Date.now() + 60000, lock: false };
+  S = { m: "sort", start: "sort", pool, i: 0, score: 0, combo: 0, miss: [], left: 60, end: Date.now() + 60000, lock: false };
   app.innerHTML = `<header class="top"><h1 class="logo" style="font-size:1.3rem">勘定科目ふりわけ</h1><button class="back" id="quit">やめる</button></header>
     <div class="progress"><span class="num big" id="score">0</span><span>問正解</span><div class="bar" style="opacity:0"></div><span class="combo" id="combo"></span><span class="num" id="sec">60</span></div>
     <div class="timer"><i id="tbar" style="width:100%"></i></div>
     <div class="card word"><div class="w" id="w"></div><div class="fb" id="fb">この勘定科目はどれ？</div></div>
-    <div class="cats">${Object.entries(CAT).map(([k, v]) => `<button class="k-${k}" data-k="${k}">${v}</button>`).join("")}</div>`;
+    <div class="cats">${Object.entries(CAT).map(([k, v]) => `<button class="k-${k}" data-k="${k}">${v}</button>`).join("")}</div>
+    <button class="unknown" id="unknown" type="button">分からない<small>答えを見て次へ</small></button>`;
   bindQuit();
   const showWord = () => { document.getElementById("w").textContent = S.pool[S.i % S.pool.length][0]; };
   showWord();
-  app.querySelectorAll(".cats button").forEach(b => b.onclick = () => {
+  const answer = (pickK) => {
     if (S.lock) return;
-    const [name, k] = S.pool[S.i % S.pool.length], ok = b.dataset.k === k, fb = document.getElementById("fb");
+    const [name, k] = S.pool[S.i % S.pool.length], ok = pickK === k, fb = document.getElementById("fb");
     record(ok);
     if (ok) { S.score++; S.combo++; fb.innerHTML = `<span style="color:var(--ok)">○ ${CAT[k]}</span>`; }
-    else { S.combo = 0; S.miss.push({ q: name, a: CAT[k], e: "" }); fb.innerHTML = `<span style="color:var(--shu)">× ${name} は <b>${CAT[k]}</b></span>`; }
+    else {
+      S.combo = 0; S.miss.push({ q: name, a: CAT[k], e: GLOSS[ALIAS[name]] ? GLOSS[ALIAS[name]].d : "" });
+      fb.innerHTML = `<span style="color:var(--shu)">${pickK ? "×" : "→"} ${L(name)} は <b>${CAT[k]}</b></span>`;
+    }
     document.getElementById("score").textContent = S.score;
     document.getElementById("combo").textContent = S.combo >= 3 ? S.combo + "連続" : "";
     S.i++;
-    if (!ok) { S.lock = true; setTimeout(() => { S.lock = false; if (S.m === "sort" && S.left > 0) showWord(); }, 650); } else showWord();
-  });
+    if (!ok) { S.lock = true; setTimeout(() => { S.lock = false; if (S.m === "sort" && S.left > 0 && document.getElementById("w")) showWord(); }, pickK ? 700 : 1300); } else showWord();
+  };
+  app.querySelectorAll(".cats button").forEach(b => b.onclick = () => answer(b.dataset.k));
+  document.getElementById("unknown").onclick = () => answer(null);
   timerId = setInterval(() => {
     const ms = Math.max(0, S.end - Date.now()); S.left = Math.ceil(ms / 1000);
     const sec = document.getElementById("sec"), bar = document.getElementById("tbar");
@@ -501,7 +832,7 @@ function result() {
   clearInterval(timerId);
   const isSort = S.m === "sort";
   const n = isSort ? S.score + S.miss.length : S.items.length;
-  const key = S.weak ? null : S.m;
+  const key = S.weak ? null : S.start;
   const prev = key ? store.best[key] : undefined;
   const newBest = key && (prev === undefined || S.score > prev);
   if (newBest) { store.best[key] = S.score; save(); }
@@ -517,10 +848,62 @@ function result() {
       <p>${isSort ? `正答率 ${n ? Math.round(rate * 100) : 0}%（${n}問回答）` : ""}${newBest ? "　自己ベスト更新！" : ""}</p>
     </div>
     <div class="actions"><button class="ghost" id="home">メニューへ</button><button class="primary" id="again">もう一回</button></div>
-    ${S.miss.length ? `<div class="review"><h3>間違えたところ</h3>${S.miss.map(m => `<div class="rv"><span>${m.q}</span>${m.a.startsWith("<table") ? m.a : `<b>→ ${m.a}</b>`}${m.e ? `<span class="note">${m.e}</span>` : ""}</div>`).join("")}</div>` : ""}`;
-  const mode = S.weak ? "weak" : S.m;
+    ${S.miss.length ? `<div class="review"><h3>間違えた・分からなかったところ</h3>${S.miss.map(m => `<div class="rv"><span>${L(m.q)}</span>${m.a.startsWith("<table") ? m.a : `<b>→ ${m.a}</b>`}${m.e ? `<span class="note">${L(m.e)}</span>` : ""}</div>`).join("")}</div>` : ""}`;
+  const mode = S.weak ? "weak" : S.start;
   document.getElementById("home").onclick = home;
   document.getElementById("again").onclick = () => (mode === "weak" && !store.weakJ.length) ? home() : start(mode);
+  window.scrollTo(0, 0);
+}
+
+/* ---- 用語じてん ---- */
+const RULES = `
+  <section class="rules card">
+    <span class="tag">仕訳の基本ルール</span>
+    <p>取引はすべて「何が増えて、何が減ったか」を左（<b>借方</b>）と右（<b>貸方</b>）に書き分けます。どちらに書くかは、科目が5つのグループのどれかで決まります。</p>
+    <div class="tscroll"><table class="rule-t">
+      <thead><tr><th>グループ</th><th>例</th><th>増えたら</th><th>減ったら</th></tr></thead>
+      <tbody>
+        <tr><td class="k-asset">資産</td><td>現金・売掛金・建物</td><td>借方（左）</td><td>貸方（右）</td></tr>
+        <tr><td class="k-liab">負債</td><td>買掛金・借入金</td><td>貸方（右）</td><td>借方（左）</td></tr>
+        <tr><td class="k-eq">純資産</td><td>資本金・繰越利益剰余金</td><td>貸方（右）</td><td>借方（左）</td></tr>
+        <tr><td class="k-rev">収益</td><td>売上・受取利息</td><td>貸方（右）</td><td>（取消しのとき借方）</td></tr>
+        <tr><td class="k-exp">費用</td><td>仕入・給料・支払利息</td><td>借方（左）</td><td>（取消しのとき貸方）</td></tr>
+      </tbody></table></div>
+    <p class="mnemo">覚え方：<b>資産と費用は左</b>で増える。<b>負債・純資産・収益は右</b>で増える。</p>
+    <div class="example">
+      <span class="note">例）商品50,000円を売って、現金を受け取った</span>
+      ${slip("現金:50000 | 売上:50000", true)}
+      <span class="note">現金（資産）が増えた → 左。売上（収益）が発生した → 右。左右の合計はいつも同じ金額になります。</span>
+    </div>
+    <p class="note">決算書は2つ。<b>貸借対照表</b>は「資産 ＝ 負債 ＋ 純資産」、<b>損益計算書</b>は「収益 − 費用 ＝ 利益」。</p>
+  </section>`;
+function dict() {
+  clearInterval(timerId);
+  const cats = ["すべて", "基本", "資産", "負債", "純資産", "収益", "費用", "論点"];
+  app.innerHTML = `<header class="top"><h1 class="logo" style="font-size:1.3rem">用語じてん</h1><button class="back" id="quit">メニューへ</button></header>
+    ${RULES}
+    <div class="dict-tools">
+      <input id="dict-q" type="search" placeholder="用語を検索（例：引当金）" aria-label="用語を検索" autocomplete="off">
+      <div class="chips" id="dict-c">${cats.map((c, i) => `<button class="fchip${i ? "" : " on"}" data-c="${c}">${c}</button>`).join("")}</div>
+    </div>
+    <div class="dict-list" id="dict-l"></div>`;
+  document.getElementById("quit").onclick = home;
+  let cat = "すべて";
+  const q = document.getElementById("dict-q");
+  const draw = () => {
+    const kw = q.value.trim();
+    const list = GLOSSARY.filter(([t, c, d]) => (cat === "すべて" || c === cat) && (!kw || t.includes(kw) || d.includes(kw)));
+    document.getElementById("dict-l").innerHTML = list.length
+      ? list.map(([t, c, d]) => `<div class="dict-item"><button class="dict-t term-btn" data-open="${t}">${t}<span>${c}</span></button><p>${d}</p></div>`).join("")
+      : `<p class="note">「${kw.replace(/[<>&"]/g, "")}」に当てはまる用語はありません。言葉を短くして探してみてください。</p>`;
+    document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTerm(b.dataset.open));
+  };
+  q.oninput = draw;
+  document.querySelectorAll(".fchip").forEach(b => b.onclick = () => {
+    cat = b.dataset.c; document.querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", x === b)); draw();
+  });
+  draw();
+  window.scrollTo(0, 0);
 }
 
 home();
