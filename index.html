@@ -585,7 +585,45 @@ const KEY = "sukima-boki-v1";
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
 let store = { total: 0, correct: 0, days: {}, best: {}, weakJ: [] };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+/* 保存先：まずブラウザ。claude.ai で開いているときはアカウントにも保存して、再読み込みや別の端末でも続きから */
+let cloud = null, cloudState = "pending", cloudTimer = null, cloudBusy = Promise.resolve();
+function cloudWrite() {
+  if (!cloud) return;
+  const body = JSON.parse(JSON.stringify(store));
+  cloudBusy = cloudBusy.then(() => cloud.set(body)).then(() => { cloudState = "on"; }).catch(e => {
+    if (e && e.code === "unavailable") return new Promise(r => setTimeout(r, 1500 + Math.random() * 1000)).then(() => cloud.set(body)).catch(() => {});
+    if (e && ["invalid_argument", "revoked", "not_granted", "capability_disabled", "capability_removed"].includes(e.code)) { cloud = null; cloudState = "off"; }
+  });
+}
+const save = () => {
+  store.updatedAt = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+  if (cloud) { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudWrite, 800); }
+};
+function flushCloud() { if (cloud && cloudTimer) { clearTimeout(cloudTimer); cloudTimer = null; cloudWrite(); } }
+addEventListener("pagehide", flushCloud);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushCloud(); });
+function mergeStore(a, b) {
+  const newer = (b.updatedAt || 0) > (a.updatedAt || 0) ? b : a;
+  const days = { ...(a.days || {}) }; for (const [k, v] of Object.entries(b.days || {})) days[k] = Math.max(days[k] || 0, v);
+  const best = { ...(a.best || {}) }; for (const [k, v] of Object.entries(b.best || {})) best[k] = Math.max(best[k] ?? -1, v);
+  return { total: newer.total || 0, correct: newer.correct || 0, weakJ: Array.isArray(newer.weakJ) ? newer.weakJ : [], days, best, updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0) };
+}
+async function initCloud() {
+  try {
+    if (!window.claude || !window.claude.use) { cloudState = "off"; return refreshHome(); }
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    const uid = db && user ? await user.id() : null;
+    if (!uid) { cloudState = "off"; return refreshHome(); }
+    const ref = db.doc("data/users/" + uid + "/progress");
+    const snap = await ref.get();
+    if (snap.exists) store = mergeStore(store, snap.data());
+    cloud = ref; cloudState = "on";
+    try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+    cloudWrite();
+  } catch (e) { cloudState = "off"; }
+  refreshHome();
+}
 function record(ok) { store.total++; if (ok) store.correct++; const t = today(); store.days[t] = (store.days[t] || 0) + 1; save(); }
 function streak() {
   let n = 0; const d = new Date();
@@ -649,6 +687,8 @@ document.addEventListener("keydown", e => {
 });
 
 /* ---- ホーム ---- */
+let onHome = false;
+function refreshHome() { if (onHome) home(); }
 function home() {
   clearInterval(timerId);
   const acc = store.total ? Math.round(store.correct / store.total * 100) : 0;
@@ -670,12 +710,14 @@ function home() {
       ${weak ? `<button class="mode" data-m="weak"><span class="ic">復</span><span><h3>間違えた仕訳を復習</h3><p>外した・分からなかった仕訳だけを出題。正解すると卒業</p></span><span class="meta">${weak}問</span></button>` : ""}
       <button class="mode" data-m="dict"><span class="ic">辞</span><span><h3>用語じてん</h3><p>基本ルールと、よく出る用語${GLOSSARY.length}語をやさしく解説</p></span><span class="meta">検索できる</span></button>
     </div>
-    <p class="note">記録はこの端末のブラウザにだけ保存されます。</p>`;
+    <p class="note" id="save-note">${cloudState === "on" ? "記録はあなたのアカウントに保存されています。再読み込みしても、別の端末で開いても続きからできます。" : cloudState === "pending" ? "記録を読み込んでいます…" : "記録はこの端末のブラウザに保存されます。"}</p>`;
+  onHome = true;
   app.querySelectorAll("[data-m]").forEach(b => b.onclick = () => start(b.dataset.m));
   window.scrollTo(0, 0);
 }
 
 function start(m) {
+  onHome = false;
   if (m === "dict") return dict();
   if (m === "sort") return startSort();
   const lvIdx = lv => shuffle(JOURNAL.map((x, i) => [x, i]).filter(([x]) => (x.lv || 2) === lv).map(([, i]) => i)).slice(0, 10);
@@ -907,6 +949,7 @@ function dict() {
 }
 
 home();
+initCloud();
 </script>
 </body>
 </html>
